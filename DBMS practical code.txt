@@ -1,0 +1,804 @@
+1.College Course Registration System
+CREATE TABLE Student (
+    StudentID INT PRIMARY KEY,
+    Name VARCHAR(50) NOT NULL,
+    Age INT CHECK (Age >= 18),
+    Email VARCHAR(100) UNIQUE NOT NULL
+);
+CREATE TABLE Course (
+    CourseID INT PRIMARY KEY,
+    CourseName VARCHAR(50) NOT NULL,
+    Credits INT
+);
+CREATE TABLE Enrollment (
+    EnrollmentID INT PRIMARY KEY,
+    StudentID INT,
+    CourseID INT,
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+    FOREIGN KEY (CourseID) REFERENCES Course(CourseID)
+);
+INSERT INTO Student VALUES
+(1, 'Amit', 20, 'amit@gmail.com'),
+(2, 'Priya', 19, 'priya@gmail.com'),
+(3, 'Rahul', 21, 'rahul@gmail.com');
+INSERT INTO Course VALUES
+(101, 'DBMS', 4),
+(102, 'Java', 3),
+(103, 'Python', 2);
+INSERT INTO Enrollment VALUES
+(1, 1, 101),
+(2, 2, 102),
+(3, 3, 103);
+ALTER TABLE Student
+ADD PhoneNumber VARCHAR(15);
+ALTER TABLE Course
+ADD CONSTRAINT chk_credits CHECK (Credits BETWEEN 1 AND 5);
+RENAME TABLE Course TO Subject;
+TRUNCATE TABLE Enrollment;
+DROP TABLE Subject;
+
+
+2.Online Food Delivery System
+CREATE TABLE Restaurant (
+    RestaurantID INT PRIMARY KEY,
+    RestaurantName VARCHAR(50) NOT NULL,
+    Location VARCHAR(50) NOT NULL
+);
+CREATE TABLE Customer (
+    CustomerID INT PRIMARY KEY,
+    CustomerName VARCHAR(50) NOT NULL,
+    Phone VARCHAR(15) UNIQUE NOT NULL
+);
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    RestaurantID INT,
+    Amount DECIMAL(10,2) CHECK (Amount > 0),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID),
+    FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID)
+);
+INSERT INTO Restaurant VALUES
+(1, 'Spice Hub', 'Pune'),
+(2, 'Food Palace', 'Mumbai'),
+(3, 'Tasty Treat', 'Delhi');
+INSERT INTO Customer VALUES
+(101, 'Amit', '9876543210'),
+(102, 'Priya', '9123456780'),
+(103, 'Rahul', '9988776655');
+INSERT INTO Orders VALUES
+(1, 101, 1, 250),
+(2, 102, 2, 500),
+(3, 103, 3, 300);
+ALTER TABLE Customer
+ADD Email VARCHAR(100);
+ALTER TABLE Orders
+ADD CONSTRAINT chk_amount CHECK (Amount BETWEEN 100 AND 5000);
+RENAME TABLE Orders TO CustomerOrders;
+TRUNCATE TABLE CustomerOrders;
+DROP TABLE Restaurant;
+
+
+3.Bank Account Management System
+CREATE TABLE Account (
+    AccountID INT PRIMARY KEY,
+    CustomerName VARCHAR(50) NOT NULL,
+    Balance DECIMAL(10,2) NOT NULL,
+    AccountType VARCHAR(20) NOT NULL
+);
+INSERT INTO Account VALUES
+(1, 'Amit', 20000, 'Savings'),
+(2, 'Priya', 55000, 'Current'),
+(3, 'Anjali', 8000, 'Savings'),
+(4, 'Rahul', 1200, 'Current'),
+(5, 'Arjun', 70000, 'Savings');
+UPDATE Account
+SET Balance = Balance + (Balance * 0.10)
+WHERE AccountType = 'Savings';
+UPDATE Account
+SET AccountType = 'Premium'
+WHERE Balance > 50000;
+DELETE FROM Account
+WHERE Balance < 1000;
+SELECT AccountID, CustomerName, Balance + 500 AS UpdatedBalance
+FROM Account;
+SELECT * FROM Account
+WHERE Balance BETWEEN 10000 AND 50000;
+SELECT * FROM Account
+WHERE CustomerName LIKE 'A%';
+SELECT UPPER(CustomerName) AS NameUpper
+FROM Account;
+CREATE ROLE BankClerk;
+GRANT SELECT, INSERT ON Account TO BankClerk;
+REVOKE INSERT ON Account FROM BankClerk;
+START TRANSACTION;
+UPDATE Account
+SET Balance = Balance - 5000
+WHERE AccountID = 1;
+
+UPDATE Account
+SET Balance = Balance + 5000
+WHERE AccountID = 2;
+SAVEPOINT sp1;
+UPDATE Account
+SET Balance = Balance - 200;
+ROLLBACK TO sp1;
+COMMIT;
+
+
+4.Retail Store Sales Analysis
+CREATE TABLE Sales (
+    SaleID INT PRIMARY KEY,
+    ProductName VARCHAR(50) NOT NULL,
+    Category VARCHAR(50) NOT NULL,
+    Quantity INT NOT NULL,
+    Price DECIMAL(10,2) NOT NULL
+);
+INSERT INTO Sales VALUES
+(1, 'Laptop', 'Electronics', 2, 40000),
+(2, 'Mobile', 'Electronics', 5, 15000),
+(3, 'Shirt', 'Clothing', 10, 800),
+(4, 'Jeans', 'Clothing', 6, 1200),
+(5, 'Mixer', 'HomeAppliance', 3, 3000);
+SELECT Category, SUM(Quantity) AS TotalQuantity
+FROM Sales
+GROUP BY Category;
+SELECT Category, AVG(Price) AS AvgPrice
+FROM Sales
+GROUP BY Category;
+SELECT Category, MAX(Price) AS MaxPrice, MIN(Price) AS MinPrice
+FROM Sales
+GROUP BY Category;
+SELECT Category, SUM(Quantity * Price) AS TotalSales
+FROM Sales
+GROUP BY Category;
+SELECT Category, COUNT(ProductName) AS ProductCount
+FROM Sales
+GROUP BY Category;
+SELECT Category, SUM(Quantity * Price) AS TotalSales
+FROM Sales
+GROUP BY Category
+HAVING SUM(Quantity * Price) > 5000;
+SELECT Category, AVG(Price) AS AvgPrice
+FROM Sales
+GROUP BY Category
+HAVING AVG(Price) > 1000;
+SELECT Category, SUM(Quantity * Price) AS TotalSales
+FROM Sales
+GROUP BY Category
+ORDER BY TotalSales DESC
+LIMIT 1;
+
+
+5.Hospital Patient Billing System
+CREATE TABLE Billing (
+    BillID INT PRIMARY KEY,
+    PatientName VARCHAR(50) NOT NULL,
+    Department VARCHAR(50) NOT NULL,
+    Amount DECIMAL(10,2) NOT NULL,
+    DaysAdmitted INT NOT NULL
+);
+INSERT INTO Billing VALUES
+(1, 'Amit', 'Cardiology', 15000, 4),
+(2, 'Priya', 'Orthopedics', 22000, 5),
+(3, 'Rahul', 'General', 8000, 2),
+(4, 'Anjali', 'Neurology', 30000, 6),
+(5, 'Arjun', 'Cardiology', 12000, 3),
+(6, 'Sneha', 'General', 7000, 2),
+(7, 'Kiran', 'Orthopedics', 18000, 4),
+(8, 'Neha', 'Neurology', 25000, 5);
+SELECT Department, SUM(Amount) AS TotalBilling
+FROM Billing
+GROUP BY Department;
+SELECT Department, AVG(Amount) AS AvgBilling
+FROM Billing
+GROUP BY Department;
+SELECT Department, MAX(Amount) AS MaxBill, MIN(Amount) AS MinBill
+FROM Billing
+GROUP BY Department;
+SELECT Department, COUNT(*) AS TotalPatients
+FROM Billing
+GROUP BY Department;
+SELECT Department, SUM(DaysAdmitted) AS TotalDays
+FROM Billing
+GROUP BY Department;
+SELECT Department, SUM(Amount) AS TotalBilling
+FROM Billing
+GROUP BY Department
+HAVING SUM(Amount) > 20000;
+SELECT Department, AVG(DaysAdmitted) AS AvgDays
+FROM Billing
+GROUP BY Department
+HAVING AVG(DaysAdmitted) > 3;
+SELECT Department, SUM(Amount) AS TotalBilling
+FROM Billing
+GROUP BY Department
+ORDER BY TotalBilling DESC
+LIMIT 1;
+
+
+6.University Examination System
+CREATE TABLE Student (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50),
+    Department VARCHAR(50)
+);
+
+CREATE TABLE Subject (
+    SubjectID INT PRIMARY KEY,
+    SubjectName VARCHAR(50)
+);
+
+CREATE TABLE Marks (
+    StudentID INT,
+    SubjectID INT,
+    MarksObtained INT,
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+    FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID)
+);
+-- Student Table
+INSERT INTO Student VALUES
+(1, 'Amit', 'Computer'),
+(2, 'Sneha', 'IT'),
+(3, 'Rahul', 'Mechanical'),
+(4, 'Priya', 'Computer'),
+(5, 'Neha', 'Civil');
+
+-- Subject Table
+INSERT INTO Subject VALUES
+(101, 'DBMS'),
+(102, 'Maths'),
+(103, 'Physics'),
+(104, 'Programming'),
+(105, 'Electronics');
+
+-- Marks Table
+INSERT INTO Marks VALUES
+(1, 101, 85),
+(1, 102, 78),
+(2, 101, 88),
+(3, 103, 72),
+(4, 104, 90),
+(5, 105, 67);
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Marks m
+INNER JOIN Student s ON m.StudentID = s.StudentID
+INNER JOIN Subject sub ON m.SubjectID = sub.SubjectID;
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Student s
+LEFT JOIN Marks m ON s.StudentID = m.StudentID
+LEFT JOIN Subject sub ON m.SubjectID = sub.SubjectID;
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Marks m
+RIGHT JOIN Subject sub ON m.SubjectID = sub.SubjectID
+LEFT JOIN Student s ON m.StudentID = s.StudentID;
+SELECT s.StudentName, sub.SubjectName
+FROM Student s
+CROSS JOIN Subject sub;
+SELECT Department, SUM(Amount) AS TotalBilling
+FROM Billing
+GROUP BY Department
+ORDER BY TotalBilling DESC
+LIMIT 1;
+
+
+7.Online Bookstore Management System
+CREATE TABLE Authors (
+    AuthorID INT PRIMARY KEY,
+    AuthorName VARCHAR(50),
+    Country VARCHAR(50)
+);
+
+CREATE TABLE Books (
+    BookID INT PRIMARY KEY,
+    Title VARCHAR(100),
+    Price DECIMAL(8,2),
+    AuthorID INT,
+    FOREIGN KEY (AuthorID) REFERENCES Authors(AuthorID)
+);
+
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    CustomerName VARCHAR(50),
+    City VARCHAR(50)
+);
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    BookID INT,
+    OrderDate DATE,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+    FOREIGN KEY (BookID) REFERENCES Books(BookID)
+);
+-- Authors
+INSERT INTO Authors VALUES
+(1, 'Chetan Bhagat', 'India'),
+(2, 'J.K. Rowling', 'UK'),
+(3, 'Dan Brown', 'USA'),
+(4, 'Paulo Coelho', 'Brazil'),
+(5, 'Ruskin Bond', 'India');
+
+-- Books
+INSERT INTO Books VALUES
+(101, 'Half Girlfriend', 250, 1),
+(102, 'Harry Potter', 500, 2),
+(103, 'The Da Vinci Code', 450, 3),
+(104, 'The Alchemist', 300, 4),
+(105, 'The Blue Umbrella', 200, 5);
+
+-- Customers
+INSERT INTO Customers VALUES
+(1, 'Amit', 'Pune'),
+(2, 'Sneha', 'Mumbai'),
+(3, 'Rahul', 'Delhi'),
+(4, 'Priya', 'Nagpur'),
+(5, 'Neha', 'Nashik');
+
+-- Orders
+INSERT INTO Orders VALUES
+(1, 1, 101, '2024-01-10'),
+(2, 2, 102, '2024-02-15'),
+(3, 3, 103, '2024-03-12'),
+(4, 4, 104, '2024-04-18'),
+(5, 5, 105, '2024-05-20');
+CREATE VIEW BookAuthorView AS
+SELECT b.BookID, b.Title, a.AuthorName, b.Price
+FROM Books b
+INNER JOIN Authors a ON b.AuthorID = a.AuthorID;
+CREATE VIEW CustomerOrderView AS
+SELECT c.CustomerName, b.Title, o.OrderDate
+FROM Orders o
+INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+INNER JOIN Books b ON o.BookID = b.BookID;
+-- View 1
+SELECT * FROM BookAuthorView;
+
+-- View 2
+SELECT * FROM CustomerOrderView;
+DROP VIEW BookAuthorView;
+
+
+
+8.Employee Salary Analysis System
+CREATE TABLE Departments (
+    DeptID INT PRIMARY KEY,
+    DeptName VARCHAR(50),
+    Location VARCHAR(50)
+);
+CREATE TABLE Employees (
+    EmpID INT PRIMARY KEY,
+    EmpName VARCHAR(50),
+    Salary INT,
+    DeptID INT,
+    FOREIGN KEY (DeptID) REFERENCES Departments(DeptID)
+);
+INSERT INTO Departments VALUES
+(1, 'HR', 'Pune'),
+(2, 'IT', 'Mumbai'),
+(3, 'Finance', 'Delhi'),
+(4, 'Marketing', 'Bangalore'),
+(5, 'Sales', 'Chennai');
+INSERT INTO Employees VALUES
+(101, 'Rahul', 50000, 2),
+(102, 'Amit', 60000, 2),
+(103, 'Sneha', 45000, 1),
+(104, 'Priya', 70000, 3),
+(105, 'Karan', 55000, 3),
+(106, 'Neha', 65000, 4),
+(107, 'Arjun', 40000, 5);
+SELECT EmpName, Salary
+FROM Employees
+WHERE Salary > (SELECT AVG(Salary) FROM Employees);
+SELECT EmpName
+FROM Employees
+WHERE DeptID = (
+    SELECT DeptID
+    FROM Employees
+    WHERE EmpName = 'Rahul'
+);
+SELECT EmpName, Salary, DeptID
+FROM Employees E
+WHERE Salary > (
+    SELECT AVG(Salary)
+    FROM Employees
+    WHERE DeptID = E.DeptID
+);
+SELECT DeptName
+FROM Departments
+WHERE DeptID = (
+    SELECT DeptID
+    FROM Employees
+    WHERE Salary = (SELECT MAX(Salary) FROM Employees)
+);
+
+
+
+9.Student Scholarship Management System
+
+CREATE TABLE Departments (
+    DeptID INT PRIMARY KEY,
+    DeptName VARCHAR(50)
+);
+
+CREATE TABLE Students (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50),
+    Marks INT,
+    DeptID INT,
+    FOREIGN KEY (DeptID) REFERENCES Departments(DeptID)
+);
+
+INSERT INTO Departments VALUES (1, 'Computer Science');
+INSERT INTO Departments VALUES (2, 'Mechanical');
+INSERT INTO Departments VALUES (3, 'Electronics');
+INSERT INTO Departments VALUES (4, 'Civil');
+INSERT INTO Departments VALUES (5, 'IT');
+
+INSERT INTO Students VALUES (101, 'Anita', 85, 1);
+INSERT INTO Students VALUES (102, 'Rahul', 78, 1);
+INSERT INTO Students VALUES (103, 'Priya', 92, 2);
+INSERT INTO Students VALUES (104, 'Amit', 70, 2);
+INSERT INTO Students VALUES (105, 'Neha', 88, 3);
+INSERT INTO Students VALUES (106, 'Karan', 65, 3);
+INSERT INTO Students VALUES (107, 'Sneha', 95, 4);
+INSERT INTO Students VALUES (108, 'Rohit', 72, 5);
+SELECT StudentName, Marks
+FROM Students
+WHERE Marks > (SELECT AVG(Marks) FROM Students);
+SELECT StudentName
+FROM Students
+WHERE DeptID = (
+    SELECT DeptID
+    FROM Students
+    WHERE StudentName = 'Anita'
+);
+SELECT StudentName, Marks, DeptID
+FROM Students S
+WHERE Marks > (
+    SELECT AVG(Marks)
+    FROM Students
+    WHERE DeptID = S.DeptID
+);
+SELECT StudentName, Marks
+FROM Students
+WHERE Marks = (SELECT MAX(Marks) FROM Students);
+
+
+
+10.Library Management SQL
+CREATE TABLE Books (
+    BookID INT PRIMARY KEY,
+    BookTitle VARCHAR(100),
+    Author VARCHAR(100),
+    AvailableCopies INT
+);
+
+CREATE TABLE IssuedBooks (
+    IssueID INT PRIMARY KEY,
+    StudentName VARCHAR(100),
+    IssueDate DATE,
+    BookID INT,
+    FOREIGN KEY (BookID) REFERENCES Books(BookID)
+);
+Step 2: Insert Data into Books
+INSERT INTO Books VALUES
+(1, 'Database Systems', 'Korth', 5),
+(2, 'Operating System', 'Galvin', 3),
+(3, 'Computer Networks', 'Tanenbaum', 4),
+(4, 'Data Structures', 'Seymour Lipschutz', 6),
+(5, 'Software Engineering', 'Pressman', 2);
+
+ Step 3: Insert Data into IssuedBooks
+INSERT INTO IssuedBooks VALUES
+(101, 'Amit', '2026-05-01', 1),
+(102, 'Sneha', '2026-05-02', 2),
+(103, 'Rahul', '2026-05-03', 3),
+(104, 'Priya', '2026-05-04', 4),
+(105, 'Karan', '2026-05-05', 5);
+
+ Step 4: Create Stored Procedure using Cursor
+DELIMITER $$
+
+CREATE PROCEDURE ShowIssuedBooks()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE b_id INT;
+    DECLARE s_name VARCHAR(100);
+    DECLARE i_date DATE;
+
+
+    DECLARE cur CURSOR FOR
+        SELECT BookID, StudentName, IssueDate FROM IssuedBooks;
+
+   
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+   
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO b_id, s_name, i_date;
+
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+        SELECT b_id AS BookID, s_name AS StudentName, i_date AS IssueDate;
+
+    END LOOP;
+Close cursor
+    CLOSE cur;
+END $$
+
+DELIMITER ;
+ Step 5: Execute Stored Procedure
+CALL ShowIssuedBooks();
+
+
+
+11.Bank Withdrawal Trigger
+-- 1. CREATE TABLES
+CREATE TABLE Accounts (
+    AccountID INT PRIMARY KEY,
+    CustomerName VARCHAR(50),
+    Balance DECIMAL(10,2)
+);
+
+CREATE TABLE Transactions (
+    TransactionID INT PRIMARY KEY,
+    TransactionType VARCHAR(20), -- Deposit / Withdrawal
+    Amount DECIMAL(10,2),
+    AccountID INT,
+    FOREIGN KEY (AccountID) REFERENCES Accounts(AccountID)
+);
+
+
+-- 2. INSERT RECORDS INTO ACCOUNTS
+INSERT INTO Accounts VALUES
+(1, 'Amit', 5000),
+(2, 'Neha', 8000),
+(3, 'Rahul', 3000),
+(4, 'Sneha', 10000),
+(5, 'Karan', 2000);
+
+
+-- 3. INSERT INITIAL TRANSACTIONS
+INSERT INTO Transactions VALUES
+(101, 'Deposit', 1000, 1),
+(102, 'Withdrawal', 2000, 2),
+(103, 'Deposit', 500, 3),
+(104, 'Withdrawal', 3000, 4),
+(105, 'Deposit', 700, 5);
+
+
+-- 4. TRIGGER: CHECK BALANCE BEFORE WITHDRAWAL
+DELIMITER $$
+
+CREATE TRIGGER check_balance_before_withdrawal
+BEFORE INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+    DECLARE current_balance DECIMAL(10,2);
+
+    SELECT Balance INTO current_balance
+    FROM Accounts
+    WHERE AccountID = NEW.AccountID;
+
+    IF NEW.TransactionType = 'Withdrawal' AND NEW.Amount > current_balance THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Insufficient Balance! Withdrawal not allowed';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- 5. TRIGGER: UPDATE BALANCE AFTER TRANSACTION
+DELIMITER $$
+
+CREATE TRIGGER update_balance_after_transaction
+AFTER INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+    IF NEW.TransactionType = 'Deposit' THEN
+        UPDATE Accounts
+        SET Balance = Balance + NEW.Amount
+        WHERE AccountID = NEW.AccountID;
+
+    ELSEIF NEW.TransactionType = 'Withdrawal' THEN
+        UPDATE Accounts
+        SET Balance = Balance - NEW.Amount
+        WHERE AccountID = NEW.AccountID;
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- 6. TEST TRANSACTIONS
+
+-- Valid Withdrawal (Allowed)
+INSERT INTO Transactions VALUES (106, 'Withdrawal', 1000, 1);
+
+-- Invalid Withdrawal (Blocked by Trigger)
+INSERT INTO Transactions VALUES (107, 'Withdrawal', 10000, 3);
+
+
+-- 7. DISPLAY FINAL ACCOUNT BALANCES
+SELECT * FROM Accounts;
+
+
+-- 8. DISPLAY ALL TRANSACTIONS
+SELECT * FROM Transactions;
+
+
+
+12: Online Order Processing System
+CREATE TABLE Accounts (
+    AccountID INT PRIMARY KEY,
+    CustomerName VARCHAR(50),
+    Balance DECIMAL(10,2)
+);
+
+CREATE TABLE Transactions (
+    TransactionID INT PRIMARY KEY,
+    TransactionType VARCHAR(20), -- Deposit / Withdrawal
+    Amount DECIMAL(10,2),
+    AccountID INT,
+    FOREIGN KEY (AccountID) REFERENCES Accounts(AccountID)
+);
+INSERT INTO Accounts VALUES (1, 'Amit', 5000);
+INSERT INTO Accounts VALUES (2, 'Sneha', 8000);
+INSERT INTO Accounts VALUES (3, 'Rahul', 3000);
+INSERT INTO Accounts VALUES (4, 'Priya', 10000);
+INSERT INTO Accounts VALUES (5, 'Neha', 6000);
+
+INSERT INTO Transactions VALUES (101, 'Deposit', 2000, 1);
+INSERT INTO Transactions VALUES (102, 'Withdrawal', 1000, 2);
+INSERT INTO Transactions VALUES (103, 'Deposit', 1500, 3);
+INSERT INTO Transactions VALUES (104, 'Withdrawal', 500, 4);
+INSERT INTO Transactions VALUES (105, 'Deposit', 3000, 5);
+DELIMITER $$
+
+CREATE TRIGGER check_balance_before_transaction
+BEFORE INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+    DECLARE current_balance DECIMAL(10,2);
+
+    -- Get current balance
+    SELECT Balance INTO current_balance
+    FROM Accounts
+    WHERE AccountID = NEW.AccountID;
+
+    -- Check for withdrawal
+    IF NEW.TransactionType = 'Withdrawal' AND NEW.Amount > current_balance THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Insufficient Balance!';
+    END IF;
+
+END$$
+
+DELIMITER ;
+DELIMITER $$
+
+CREATE TRIGGER update_balance_after_transaction
+AFTER INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+    IF NEW.TransactionType = 'Deposit' THEN
+        UPDATE Accounts
+        SET Balance = Balance + NEW.Amount
+        WHERE AccountID = NEW.AccountID;
+
+    ELSEIF NEW.TransactionType = 'Withdrawal' THEN
+        UPDATE Accounts
+        SET Balance = Balance - NEW.Amount
+        WHERE AccountID = NEW.AccountID;
+    END IF;
+END$$
+
+DELIMITER ;
+INSERT INTO Transactions VALUES (106, 'Withdrawal', 2000, 1);
+INSERT INTO Transactions VALUES (107, 'Withdrawal', 10000, 3);
+SELECT * FROM Accounts;
+
+
+
+
+13.Student Result Management System
+CREATE TABLE StudentMarks (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50),
+    Subject VARCHAR(50),
+    Marks INT
+);
+INSERT INTO StudentMarks VALUES (1, 'Amit', 'Maths', 85);
+INSERT INTO StudentMarks VALUES (2, 'Neha', 'Science', 78);
+INSERT INTO StudentMarks VALUES (3, 'Rahul', 'English', 92);
+INSERT INTO StudentMarks VALUES (4, 'Sneha', 'History', 67);
+INSERT INTO StudentMarks VALUES (5, 'Kiran', 'Computer', 88);
+DELIMITER $$
+
+CREATE TRIGGER check_marks_before_insert
+BEFORE INSERT ON StudentMarks
+FOR EACH ROW
+BEGIN
+    IF NEW.Marks < 0 OR NEW.Marks > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Marks must be between 0 and 100';
+    END IF;
+END$$
+
+CREATE TRIGGER check_marks_before_update
+BEFORE UPDATE ON StudentMarks
+FOR EACH ROW
+BEGIN
+    IF NEW.Marks < 0 OR NEW.Marks > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Marks must be between 0 and 100';
+    END IF;
+END$$
+
+DELIMITER ;
+CREATE TRIGGER check_marks
+ON StudentMarks
+INSTEAD OF INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT * FROM inserted
+        WHERE Marks < 0 OR Marks > 100
+    )
+    BEGIN
+        PRINT 'Marks must be between 0 and 100';
+        ROLLBACK;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO StudentMarks
+        SELECT * FROM inserted;
+    END
+END;
+INSERT INTO StudentMarks VALUES (6, 'Ravi', 'Maths', 120);
+UPDATE StudentMarks
+SET Marks = -10
+WHERE StudentID = 1;
+SELECT * FROM StudentMarks;
+
+
+
+
+14.MongoDB CRUD Operations
+use CollegeDB
+db.createCollection("Students")
+
+db.Students.save({ StudentID: 101, Name: "Amit", Course: "Computer Engineering", Year: 2, Marks: 75 })
+db.Students.save({ StudentID: 102, Name: "Sneha", Course: "IT", Year: 3, Marks: 68 })
+db.Students.save({ StudentID: 103, Name: "Rahul", Course: "Computer Engineering", Year: 1, Marks: 82 })
+db.Students.save({ StudentID: 104, Name: "Priya", Course: "EXTC", Year: 2, Marks: 59 })
+db.Students.save({ StudentID: 105, Name: "Neha", Course: "IT", Year: 4, Marks: 90 })
+
+db.Students.find()
+
+db.Students.find({ Course: "Computer Engineering" })
+
+db.Students.find({ Marks: { $gt: 70 } })
+
+db.Students.updateOne(
+  { StudentID: 102 },
+  { $set: { Course: "Computer Engineering" } }
+)
+db.Students.deleteOne({ StudentID: 105 })
+db.Students.find({
+  $and: [
+    { Marks: { $gt: 60 } },
+    { Course: "IT" }
+  ]
+})
+db.Students.find({
+  $or: [
+    { Course: "Computer Engineering" },
+    { Course: "IT" }
+  ]
+})
