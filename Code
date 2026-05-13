@@ -180,3 +180,520 @@ DELIMITER ;
 
 -- Step 5: Execute Stored Procedure
 CALL ShowIssuedBooks();
+
+
+Corrected code
+-- 1. DDL: CREATE TABLES
+CREATE TABLE Student (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50),
+    Department VARCHAR(50)
+);
+
+CREATE TABLE Subject (
+    SubjectID INT PRIMARY KEY,
+    SubjectName VARCHAR(50)
+);
+
+CREATE TABLE Marks (
+    StudentID INT,
+    SubjectID INT,
+    MarksObtained INT,
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+    FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID)
+);
+
+CREATE TABLE Billing (
+    BillingID INT PRIMARY KEY,
+    Department VARCHAR(50),
+    Amount DECIMAL(10,2)
+);
+
+-- 2. DML: INSERT DATA
+-- Student Table
+INSERT INTO Student VALUES
+(1, 'Amit', 'Computer'),
+(2, 'Sneha', 'IT'),
+(3, 'Rahul', 'Mechanical'),
+(4, 'Priya', 'Computer'),
+(5, 'Neha', 'Civil');
+
+-- Subject Table
+INSERT INTO Subject VALUES
+(101, 'DBMS'),
+(102, 'Maths'),
+(103, 'Physics'),
+(104, 'Programming'),
+(105, 'Electronics');
+
+-- Marks Table
+INSERT INTO Marks VALUES
+(1, 101, 85),
+(1, 102, 78),
+(2, 101, 88),
+(3, 103, 72),
+(4, 104, 90),
+(5, 105, 67);
+
+-- Billing Table
+INSERT INTO Billing VALUES
+(1, 'Computer', 50000.00),
+(2, 'IT', 45000.00),
+(3, 'Computer', 25000.00),
+(4, 'Mechanical', 30000.00),
+(5, 'Civil', 20000.00);
+
+-- 3. DQL: SELECTION & JOINS
+-- Inner Join: Shows only students who have marks assigned
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Marks m
+INNER JOIN Student s ON m.StudentID = s.StudentID
+INNER JOIN Subject sub ON m.SubjectID = sub.SubjectID;
+
+-- Left Join: Shows all students, even if they have no marks (e.g., if a student missed exams)
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Student s
+LEFT JOIN Marks m ON s.StudentID = m.StudentID
+LEFT JOIN Subject sub ON m.SubjectID = sub.SubjectID;
+
+-- Right/Left Combo Join: Ensures all subjects are listed even if no one took them
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Marks m
+RIGHT JOIN Subject sub ON m.SubjectID = sub.SubjectID
+LEFT JOIN Student s ON m.StudentID = s.StudentID;
+
+-- Cross Join: Creates a grid of every possible student and subject combination
+SELECT s.StudentName, sub.SubjectName
+FROM Student s
+CROSS JOIN Subject sub;
+
+-- Aggregation Query: Finds the department with the highest total billing
+SELECT Department, SUM(Amount) AS TotalBilling
+FROM Billing
+GROUP BY Department
+ORDER BY TotalBilling DESC
+LIMIT 1;
+
+
+
+
+-- Step 1: Create Tables
+CREATE TABLE Books (
+    BookID INT PRIMARY KEY,
+    BookTitle VARCHAR(100),
+    Author VARCHAR(100),
+    AvailableCopies INT
+);
+
+CREATE TABLE IssuedBooks (
+    IssueID INT PRIMARY KEY,
+    StudentName VARCHAR(100),
+    IssueDate DATE,
+    BookID INT,
+    FOREIGN KEY (BookID) REFERENCES Books(BookID)
+);
+
+-- Step 2: Insert Data into Books
+INSERT INTO Books VALUES
+(1, 'Database Systems', 'Korth', 5),
+(2, 'Operating System', 'Galvin', 3),
+(3, 'Computer Networks', 'Tanenbaum', 4),
+(4, 'Data Structures', 'Seymour Lipschutz', 6),
+(5, 'Software Engineering', 'Pressman', 2);
+
+-- Step 3: Insert Data into IssuedBooks
+INSERT INTO IssuedBooks VALUES
+(101, 'Amit', '2026-05-01', 1),
+(102, 'Sneha', '2026-05-02', 2),
+(103, 'Rahul', '2026-05-03', 3),
+(104, 'Priya', '2026-05-04', 4),
+(105, 'Karan', '2026-05-05', 5);
+
+-- Step 4: Create Stored Procedure using Cursor
+DELIMITER $$
+
+CREATE PROCEDURE ShowIssuedBooks()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE b_id INT;
+    DECLARE s_name VARCHAR(100);
+    DECLARE i_date DATE;
+
+    -- Declare Cursor
+    DECLARE cur CURSOR FOR
+        SELECT BookID, StudentName, IssueDate FROM IssuedBooks;
+
+    -- Declare Handler
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Create a temporary table to consolidate loop output safely
+    CREATE TEMPORARY TABLE IF NOT EXISTS TempOutput (
+        BookID INT,
+        StudentName VARCHAR(100),
+        IssueDate DATE
+    );
+    
+    -- Clear table data in case it was left open in the current session
+    TRUNCATE TABLE TempOutput;
+
+    -- Open cursor
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO b_id, s_name, i_date;
+
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Collect rows inside the temporary table step by step
+        INSERT INTO TempOutput VALUES (b_id, s_name, i_date);
+
+    END LOOP;
+
+    -- Close cursor
+    CLOSE cur;
+
+    -- Display the unified final data grid
+    SELECT * FROM TempOutput;
+    
+    -- Drop temporary table to free up memory
+    DROP TEMPORARY TABLE TempOutput;
+END $$
+
+DELIMITER ;
+
+-- Step 5: Execute Stored Procedure
+CALL ShowIssuedBooks();
+
+
+
+11.
+-- 1. CREATE TABLES
+CREATE TABLE Books (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(100) NOT NULL,
+    Price DECIMAL(10,2) NOT NULL
+);
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    Quantity INT NOT NULL,
+    OrderDate DATE NOT NULL,
+    ProductID INT,
+    FOREIGN KEY (ProductID) REFERENCES Books(ProductID)
+);
+
+
+-- 2. INSERT RECORDS (5 into each table)
+INSERT INTO Books VALUES
+(1, 'Database Systems', 500.00),
+(2, 'Operating Systems', 450.00),
+(3, 'Computer Networks', 600.00),
+(4, 'Data Structures', 350.00),
+(5, 'Software Engineering', 400.00);
+
+INSERT INTO Orders VALUES
+(101, 2, '2026-05-10', 1), -- 2 * 500 = 1000
+(102, 1, '2026-05-11', 2), -- 1 * 450 = 450
+(103, 3, '2026-05-11', 4), -- 3 * 350 = 1050
+(104, 1, '2026-05-12', 3), -- 1 * 600 = 600
+(105, 5, '2026-05-13', 5); -- 5 * 400 = 2000
+                            -- Expected Total = 5100
+
+
+-- 3. CREATE THE STORED FUNCTION WITH A CURSOR
+DELIMITER $$
+
+CREATE FUNCTION CalculateTotalRevenue() 
+RETURNS DECIMAL(12,2)
+DETERMINISTIC
+BEGIN
+    -- Declare operational variables
+    DECLARE done INT DEFAULT 0;
+    DECLARE o_quantity INT;
+    DECLARE p_price DECIMAL(10,2);
+    DECLARE total_revenue DECIMAL(12,2) DEFAULT 0.00;
+
+    -- Declare the cursor to join orders and book prices
+    DECLARE cur CURSOR FOR 
+        SELECT o.Quantity, b.Price 
+        FROM Orders o
+        INNER JOIN Books b ON o.ProductID = b.ProductID;
+
+    -- Declare handler to terminate the loop when data runs out
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Open the cursor
+    OPEN cur;
+
+    read_loop: LOOP
+        -- Fetch row data into variables
+        FETCH cur INTO o_quantity, p_price;
+
+        -- Exit loop if no more records exist
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Calculate row total and add it to the running revenue tracker
+        SET total_revenue = total_revenue + (o_quantity * p_price);
+    END LOOP;
+
+    -- Close the cursor to free memory
+    CLOSE cur;
+
+    -- Return the final calculated amount
+    RETURN total_revenue;
+END$$
+
+DELIMITER ;
+
+
+-- 4. EXECUTE THE FUNCTION
+SELECT CalculateTotalRevenue() AS TotalECommerceRevenue;
+
+
+
+
+12.
+-- 1. CREATE TABLES
+CREATE TABLE Accounts (
+    AccountID INT PRIMARY KEY,
+    CustomerName VARCHAR(50) NOT NULL,
+    Balance DECIMAL(10,2) NOT NULL
+);
+
+CREATE TABLE Transactions (
+    TransactionID INT PRIMARY KEY,
+    TransactionType VARCHAR(20) NOT NULL, -- 'Deposit' or 'Withdrawal'
+    Amount DECIMAL(10,2) NOT NULL,
+    AccountID INT,
+    FOREIGN KEY (AccountID) REFERENCES Accounts(AccountID)
+);
+
+
+-- 2. CREATE TRIGGER: CHECK BALANCE BEFORE WITHDRAWAL
+DELIMITER $$
+
+CREATE TRIGGER check_balance_before_withdrawal
+BEFORE INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+    DECLARE current_balance DECIMAL(10,2);
+
+    -- Fetch the active balance of the target account
+    SELECT Balance INTO current_balance
+    FROM Accounts
+    WHERE AccountID = NEW.AccountID;
+
+    -- Block withdrawal if it exceeds available funds
+    IF NEW.TransactionType = 'Withdrawal' AND NEW.Amount > current_balance THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Transaction Denied: Insufficient balance for withdrawal.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- 3. CREATE TRIGGER: OPTIONAL AUTOMATION (Keeps balance updated after valid transactions)
+DELIMITER $$
+
+CREATE TRIGGER update_balance_after_transaction
+AFTER INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+    IF NEW.TransactionType = 'Deposit' THEN
+        UPDATE Accounts 
+        SET Balance = Balance + NEW.Amount 
+        WHERE AccountID = NEW.AccountID;
+    ELSEIF NEW.TransactionType = 'Withdrawal' THEN
+        UPDATE Accounts 
+        SET Balance = Balance - NEW.Amount 
+        WHERE AccountID = NEW.AccountID;
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- 4. INSERT RECORDS INTO ACCOUNTS
+INSERT INTO Accounts VALUES
+(1, 'Amit', 5000.00),
+(2, 'Neha', 12000.00),
+(3, 'Rahul', 2500.00),
+(4, 'Sneha', 800.00),
+(5, 'Karan', 15000.00);
+
+
+-- 5. INSERT INITIAL VALID TRANSACTIONS (5 records)
+INSERT INTO Transactions VALUES
+(101, 'Deposit', 1000.00, 1),    -- Amit: 5000 -> 6000
+(102, 'Withdrawal', 3000.00, 2), -- Neha: 12000 -> 9000
+(103, 'Deposit', 500.00, 3),     -- Rahul: 2500 -> 3000
+(104, 'Withdrawal', 400.00, 4),  -- Sneha: 800 -> 400
+(105, 'Deposit', 2000.00, 5);    -- Karan: 15000 -> 17000
+
+
+-- 6. TEST CASES FOR THE VALIDATION TRIGGER
+
+-- Case A: Valid Withdrawal (Allowed, Amit drops from 6000 to 4500)
+INSERT INTO Transactions VALUES (106, 'Withdrawal', 1500.00, 1);
+
+-- Case B: Invalid Withdrawal (Blocked cleanly by your trigger!)
+-- Sneha only has 400 left. This line will throw a 45000 error state.
+INSERT INTO Transactions VALUES (107, 'Withdrawal', 1000.00, 4);
+
+
+-- 7. DISPLAY FINAL UPDATED BALANCES & LOGS
+SELECT * FROM Accounts;
+SELECT * FROM Transactions;
+
+
+13.
+-- 1. CREATE TABLE
+CREATE TABLE StudentMarks (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50) NOT NULL,
+    Subject VARCHAR(50) NOT NULL,
+    Marks INT NOT NULL
+);
+
+
+-- 2. CREATE TRIGGER FOR INSERT VALIDATION
+DELIMITER $$
+
+CREATE TRIGGER check_marks_before_insert
+BEFORE INSERT ON StudentMarks
+FOR EACH ROW
+BEGIN
+    -- Block execution if marks are completely out of bounds (0-100)
+    IF NEW.Marks < 0 OR NEW.Marks > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Data Entry Denied: Marks must be strictly between 0 and 100.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- 3. CREATE TRIGGER FOR UPDATE VALIDATION
+DELIMITER $$
+
+CREATE TRIGGER check_marks_before_update
+BEFORE UPDATE ON StudentMarks
+FOR EACH ROW
+BEGIN
+    -- Block execution if an update attempts to set an invalid mark score
+    IF NEW.Marks < 0 OR NEW.Marks > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Update Denied: Marks must be strictly between 0 and 100.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- 4. INSERT VALID INITIAL DATA (5 records)
+INSERT INTO StudentMarks VALUES
+(101, 'Amit', 'Mathematics', 85),
+(102, 'Sneha', 'DBMS', 92),
+(103, 'Rahul', 'Physics', 74),
+(104, 'Priya', 'Operating Systems', 68),
+(105, 'Karan', 'Computer Networks', 81);
+
+
+-- 5. TEST THE TRIGGER WITH INVALID ENTRIES
+
+-- Test Case A: Invalid Insertion (Will be blocked cleanly by insert trigger)
+-- INSERT INTO StudentMarks VALUES (106, 'Neha', 'Mathematics', 105);
+
+-- Test Case B: Invalid Update (Will be blocked cleanly by update trigger)
+-- UPDATE StudentMarks SET Marks = -15 WHERE StudentID = 101;
+
+
+-- 6. DISPLAY THE VALID RECORDS
+SELECT * FROM StudentMarks;
+
+
+
+7.
+-- Create Tables
+CREATE TABLE Authors (
+    AuthorID INT PRIMARY KEY,
+    AuthorName VARCHAR(100),
+    Country VARCHAR(50)
+);
+
+CREATE TABLE Books (
+    BookID INT PRIMARY KEY,
+    Title VARCHAR(150),
+    Price DECIMAL(10, 2),
+    AuthorID INT,
+    FOREIGN KEY (AuthorID) REFERENCES Authors(AuthorID)
+);
+
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    CustomerName VARCHAR(100),
+    City VARCHAR(50)
+);
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    BookID INT,
+    OrderDate DATE,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+    FOREIGN KEY (BookID) REFERENCES Books(BookID)
+);
+
+-- Insert Sample Records
+INSERT INTO Authors (AuthorID, AuthorName, Country) VALUES
+(1, 'J.K. Rowling', 'UK'),
+(2, 'George R.R. Martin', 'USA'),
+(3, 'Agatha Christie', 'UK'),
+(4, 'Haruki Murakami', 'Japan'),
+(5, 'Stephen King', 'USA');
+
+INSERT INTO Books (BookID, Title, Price, AuthorID) VALUES
+(101, 'Harry Potter', 29.99, 1),
+(102, 'A Game of Thrones', 35.50, 2),
+(103, 'Murder on the Orient Express', 15.99, 3),
+(104, 'Norwegian Wood', 18.00, 4),
+(105, 'The Shining', 22.50, 5);
+
+INSERT INTO Customers (CustomerID, CustomerName, City) VALUES
+(501, 'Alice Smith', 'New York'),
+(502, 'Bob Jones', 'London'),
+(503, 'Charlie Brown', 'Tokyo'),
+(504, 'Diana Prince', 'Paris'),
+(505, 'Evan Wright', 'Chicago');
+
+INSERT INTO Orders (OrderID, CustomerID, BookID, OrderDate) VALUES
+(1001, 501, 101, '2026-01-15'),
+(1002, 502, 103, '2026-02-20'),
+(1003, 503, 104, '2026-03-05'),
+(1004, 504, 102, '2026-04-12'),
+(1005, 505, 105, '2026-05-01');
+-- Create BookAuthorView
+CREATE VIEW BookAuthorView AS
+SELECT b.BookID, b.Title, a.AuthorName, b.Price
+FROM Books b
+JOIN Authors a ON b.AuthorID = a.AuthorID;
+
+-- Create CustomerOrderView
+CREATE VIEW CustomerOrderView AS
+SELECT c.CustomerName, b.Title AS BookTitle, o.OrderDate
+FROM Orders o
+JOIN Customers c ON o.CustomerID = c.CustomerID
+JOIN Books b ON o.BookID = b.BookID;
+-- Query BookAuthorView
+SELECT * FROM BookAuthorView;
+
+-- Query CustomerOrderView
+SELECT * FROM CustomerOrderView;
+
+-- Drop BookAuthorView
+DROP VIEW BookAuthorView;
