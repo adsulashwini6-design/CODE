@@ -1,0 +1,182 @@
+-- 1. DDL: CREATE TABLES
+CREATE TABLE Student (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50),
+    Department VARCHAR(50)
+);
+
+CREATE TABLE Subject (
+    SubjectID INT PRIMARY KEY,
+    SubjectName VARCHAR(50)
+);
+
+CREATE TABLE Marks (
+    StudentID INT,
+    SubjectID INT,
+    MarksObtained INT,
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+    FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID)
+);
+
+CREATE TABLE Billing (
+    BillingID INT PRIMARY KEY,
+    Department VARCHAR(50),
+    Amount DECIMAL(10,2)
+);
+
+-- 2. DML: INSERT DATA
+-- Student Table
+INSERT INTO Student VALUES
+(1, 'Amit', 'Computer'),
+(2, 'Sneha', 'IT'),
+(3, 'Rahul', 'Mechanical'),
+(4, 'Priya', 'Computer'),
+(5, 'Neha', 'Civil');
+
+-- Subject Table
+INSERT INTO Subject VALUES
+(101, 'DBMS'),
+(102, 'Maths'),
+(103, 'Physics'),
+(104, 'Programming'),
+(105, 'Electronics');
+
+-- Marks Table
+INSERT INTO Marks VALUES
+(1, 101, 85),
+(1, 102, 78),
+(2, 101, 88),
+(3, 103, 72),
+(4, 104, 90),
+(5, 105, 67);
+
+-- Billing Table
+INSERT INTO Billing VALUES
+(1, 'Computer', 50000.00),
+(2, 'IT', 45000.00),
+(3, 'Computer', 25000.00),
+(4, 'Mechanical', 30000.00),
+(5, 'Civil', 20000.00);
+
+-- 3. DQL: SELECTION & JOINS
+-- Inner Join: Shows only students who have marks assigned
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Marks m
+INNER JOIN Student s ON m.StudentID = s.StudentID
+INNER JOIN Subject sub ON m.SubjectID = sub.SubjectID;
+
+-- Left Join: Shows all students, even if they have no marks (e.g., if a student missed exams)
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Student s
+LEFT JOIN Marks m ON s.StudentID = m.StudentID
+LEFT JOIN Subject sub ON m.SubjectID = sub.SubjectID;
+
+-- Right/Left Combo Join: Ensures all subjects are listed even if no one took them
+SELECT s.StudentName, sub.SubjectName, m.MarksObtained
+FROM Marks m
+RIGHT JOIN Subject sub ON m.SubjectID = sub.SubjectID
+LEFT JOIN Student s ON m.StudentID = s.StudentID;
+
+-- Cross Join: Creates a grid of every possible student and subject combination
+SELECT s.StudentName, sub.SubjectName
+FROM Student s
+CROSS JOIN Subject sub;
+
+-- Aggregation Query: Finds the department with the highest total billing
+SELECT Department, SUM(Amount) AS TotalBilling
+FROM Billing
+GROUP BY Department
+ORDER BY TotalBilling DESC
+LIMIT 1;
+
+
+
+
+-- Step 1: Create Tables
+CREATE TABLE Books (
+    BookID INT PRIMARY KEY,
+    BookTitle VARCHAR(100),
+    Author VARCHAR(100),
+    AvailableCopies INT
+);
+
+CREATE TABLE IssuedBooks (
+    IssueID INT PRIMARY KEY,
+    StudentName VARCHAR(100),
+    IssueDate DATE,
+    BookID INT,
+    FOREIGN KEY (BookID) REFERENCES Books(BookID)
+);
+
+-- Step 2: Insert Data into Books
+INSERT INTO Books VALUES
+(1, 'Database Systems', 'Korth', 5),
+(2, 'Operating System', 'Galvin', 3),
+(3, 'Computer Networks', 'Tanenbaum', 4),
+(4, 'Data Structures', 'Seymour Lipschutz', 6),
+(5, 'Software Engineering', 'Pressman', 2);
+
+-- Step 3: Insert Data into IssuedBooks
+INSERT INTO IssuedBooks VALUES
+(101, 'Amit', '2026-05-01', 1),
+(102, 'Sneha', '2026-05-02', 2),
+(103, 'Rahul', '2026-05-03', 3),
+(104, 'Priya', '2026-05-04', 4),
+(105, 'Karan', '2026-05-05', 5);
+
+-- Step 4: Create Stored Procedure using Cursor
+DELIMITER $$
+
+CREATE PROCEDURE ShowIssuedBooks()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE b_id INT;
+    DECLARE s_name VARCHAR(100);
+    DECLARE i_date DATE;
+
+    -- Declare Cursor
+    DECLARE cur CURSOR FOR
+        SELECT BookID, StudentName, IssueDate FROM IssuedBooks;
+
+    -- Declare Handler
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Create a temporary table to consolidate loop output safely
+    CREATE TEMPORARY TABLE IF NOT EXISTS TempOutput (
+        BookID INT,
+        StudentName VARCHAR(100),
+        IssueDate DATE
+    );
+    
+    -- Clear table data in case it was left open in the current session
+    TRUNCATE TABLE TempOutput;
+
+    -- Open cursor
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO b_id, s_name, i_date;
+
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Collect rows inside the temporary table step by step
+        INSERT INTO TempOutput VALUES (b_id, s_name, i_date);
+
+    END LOOP;
+
+    -- Close cursor
+    CLOSE cur;
+
+    -- Display the unified final data grid
+    SELECT * FROM TempOutput;
+    
+    -- Drop temporary table to free up memory
+    DROP TEMPORARY TABLE TempOutput;
+END $$
+
+DELIMITER ;
+
+-- Step 5: Execute Stored Procedure
+CALL ShowIssuedBooks();
